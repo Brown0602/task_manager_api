@@ -1,8 +1,10 @@
 package com.tuaev.task_manager.entity;
 
+import com.tuaev.task_manager.Status;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -18,9 +20,10 @@ public class Task implements Serializable {
     @Column(name = "description")
     private String description;
     @Column(name = "dateOfCreation")
-    private Date dateOfCreation;
+    private Date dateCreation;
     @Column(name = "status")
-    private boolean status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
     @Column(name = "completionDate")
     private Date completionDate;
 }

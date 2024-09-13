@@ -1,47 +1,67 @@
 package com.tuaev.task_manager.controllers;
 
+import com.tuaev.task_manager.RequestDaysOff;
+import com.tuaev.task_manager.Status;
 import com.tuaev.task_manager.dto.TaskDTO;
 import com.tuaev.task_manager.entity.Task;
+import com.tuaev.task_manager.json.DaysOffJson;
 import com.tuaev.task_manager.services.TaskService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/api/v1/")
 public class TaskManagerCreateTaskController {
 
-    @Autowired
-    private TaskService taskService;
-    @Autowired
-    private Task task;
+    private final TaskService taskService;
+    private final List<DaysOffJson> daysOffJsonList;
 
-    @RequestMapping(value = "create", method = RequestMethod.POST)
-    public Task createTask(@RequestBody TaskDTO taskDTO){
-
-        task.setHeading(taskDTO.getHeading());
-        task.setDescription(taskDTO.getDescription());
-        task.setDateOfCreation(taskDTO.getDateOfCreation());
-        task.setCompletionDate(taskDTO.getCompletionDate());
-        task.setStatus(false);
-        taskService.save(task);
-        return task;
+    public TaskManagerCreateTaskController(TaskService taskService) throws IOException, InterruptedException {
+        this.taskService = taskService;
+        this.daysOffJsonList = RequestDaysOff.getDaysOff();
     }
 
-    @RequestMapping(value = "delete/{id}", method = RequestMethod.POST)
+    @PostMapping("create")
+    public String createTask(@RequestBody TaskDTO taskDTO){
+
+        for (int i = 0; i < daysOffJsonList.size(); i++){
+            if (daysOffJsonList.get(i).getDate().equals(taskDTO.getCompletionDate())){
+                LocalDate localDate = new java.sql.Date(daysOffJsonList.get(i).getDate().getTime()).toLocalDate();
+                System.out.println(localDate.plusDays(1));
+
+                return "Ошибка! Дата завершения задачи не может попадать на праздник. Выберите другой день - " +
+                        "ближайшая дата " + localDate.plusDays(1);
+            }
+        }
+
+        Task task = new Task();
+        task.setHeading(taskDTO.getHeading());
+        task.setDescription(taskDTO.getDescription());
+        task.setDateCreation(taskDTO.getDateCreation());
+        task.setCompletionDate(taskDTO.getCompletionDate());
+        task.setStatus(Status.notCompleted);
+        taskService.save(task);
+        return "";
+    }
+
+    @PostMapping("delete/{id}")
     public void deleteTaskById(@PathVariable("id") Long id){
         taskService.deleteById(id);
     }
 
-    @RequestMapping(value = "update/{id}", method = RequestMethod.POST)
+    @PostMapping("update/{id}")
     public String updateTaskById(@PathVariable("id") Long id){
         Optional<Task> taskOptional = taskService.findById(id);
         if (taskOptional.isPresent()){
-            task = taskOptional.get();
+            Task task = taskOptional.get();
             task.setHeading("Работа");
             task.setDescription("Собирать заказы");
-            task.setStatus(false);
+            task.setStatus(Status.notCompleted);
             taskService.save(task);
         }else {
             return "Такая задача не найдена";
@@ -49,18 +69,13 @@ public class TaskManagerCreateTaskController {
         return null;
     }
 
-    @RequestMapping(value = "task/{id}", method = RequestMethod.GET)
+    @GetMapping("task/{id}")
     public @ResponseBody Task getTaskById(@PathVariable("id") Long id){
         Optional<Task> taskOptional = taskService.findById(id);
-        if (taskOptional.isPresent()){
-            task = taskOptional.get();
-            return task;
-        }else {
-            return taskOptional.get();
-        }
+        return taskOptional.orElseGet(taskOptional::get);
     }
 
-    @RequestMapping(value = "tasks", method = RequestMethod.GET)
+    @GetMapping(value = "tasks")
     public Iterable<Task> getTask(){
         return taskService.findAll();
     }
