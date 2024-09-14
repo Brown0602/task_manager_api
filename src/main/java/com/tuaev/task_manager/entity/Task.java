@@ -20,10 +20,10 @@ public class Task implements Serializable {
     @Column(name = "description")
     private String description;
     @Column(name = "dateOfCreation")
-    private Date dateCreation;
+    private LocalDate dateCreation;
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private Status status;
     @Column(name = "completionDate")
-    private Date completionDate;
+    private LocalDate completionDate;
 }
