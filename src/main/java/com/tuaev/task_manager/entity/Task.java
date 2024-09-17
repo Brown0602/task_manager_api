@@ -2,12 +2,13 @@ package com.tuaev.task_manager.entity;
 
 import com.tuaev.task_manager.Status;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "Tasks")
 public class Task implements Serializable {
