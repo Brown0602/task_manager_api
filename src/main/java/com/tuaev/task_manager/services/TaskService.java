@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
 @Getter
 @Setter
@@ -28,11 +29,21 @@ public class TaskService {
     }
 
     public String saveTask(TaskDTO taskDTO) throws IOException, InterruptedException {
-        List<DaysOffDTO> daysOffDTOList = RequestDaysOff.getDaysOff();
-        for (DaysOffDTO dto : daysOffDTOList) {
-            if (dto.getLocalDate().equals(taskDTO.getCompletionDate())) {
-                return "Ошибка! Дата завершения задачи не может попадать на праздник. " +
-                        "Выбери другой день. Ближайший доступный день: " + dto.getLocalDate().plusDays(1);
+        List<DaysOffDTO> daysOffDTOListDateCompletion = RequestDaysOff.getDaysOff(taskDTO.getCompletionDate().getYear());
+        for (int i = 0; i < daysOffDTOListDateCompletion.size(); i++) {
+            if (taskDTO.getCompletionDate().isBefore(taskDTO.getDateCreation())) {
+                return "Дата завершения задачи не может быть раньше даты создания задачи!";
+            }
+            if (taskDTO.getCompletionDate().equals(daysOffDTOListDateCompletion.get(i).getLocalDate())) {
+                int increment = 1;
+                while (true) {
+                    LocalDate date = taskDTO.getCompletionDate().plusDays(increment);
+                        if (!taskDTO.getCompletionDate().equals(daysOffDTOListDateCompletion.get(0).getLocalDate()) || !date.equals(daysOffDTOListDateCompletion.get(i + increment).getLocalDate())) {
+                            return "Дата завершения задачи не может попадать на праздник. " +
+                                    "Выберите другой день. Ближайший доступный день: " + date;
+                        }
+                        increment++;
+                    }
             }
         }
         Task task = new Task();

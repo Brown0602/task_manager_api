@@ -13,10 +13,10 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 public class RequestDaysOff{
-    public static List<DaysOffDTO> getDaysOff() throws IOException, InterruptedException {
+    public static List<DaysOffDTO> getDaysOff(int year) throws IOException, InterruptedException {
         HttpClient httpClient = HttpClient.newHttpClient();
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create("https://date.nager.at/api/v3/PublicHolidays/2024/RU"))
+                .uri(URI.create("https://date.nager.at/api/v3/PublicHolidays/" + year + "/RU"))
                 .build();
         HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         ObjectMapper objectMapper = JsonMapper.builder()
